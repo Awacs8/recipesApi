@@ -1,0 +1,32 @@
+[
+    {
+        "id":1,
+        "name":"Proja",
+        "difficulty":"lako",
+        "preparation_time": 30,
+        "ingredients": [{"name": "kukuruzno brašno",
+                        "quantity":3,
+                        "unit_of_measure": "šolje"},
+                        {"name": "integralno brašno po izboru",
+                        "quantity": 3,
+                        "unit_of_measure": "šolje"},
+                        {"name": "prašak za pecivo",
+                        "quantity": 12,
+                        "unit_of_measure": "g"},
+                        {"name": "mleko",
+                        "quantity": 4,
+                        "unit_of_measure": "šolje"},
+                        {"name": "ulje po izboru",
+                        "quantity": 1,
+                        "unit_of_measure": "šolja"},
+                        {"name": "jaja",
+                        "quantity": 2,
+                        "unit_of_measure": "kom"},
+                        {"name": "so",
+                        "quantity": 2,
+                        "unit_of_measure": "g"}],
+        "preparation_steps": ["pomešati suve sastojke", "dodati jaja, mleko i ulje", 
+                            "sjediniti sastojke", "sipati u korpice za pečenje ili tepsiju (nije potrebno podmazivati)", 
+                            "peći u prethodno zagrejanoj rerni na 180 do 200 stepeni 30-40 minuta"]
+    }
+]
