@@ -1,20 +1,94 @@
+const userRouter = require('./api/users/user.router')
+
 // const Joi = require('joi');
 const express = require('express');
 const app = express();
+
+
 const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
+
 const users=require('./users.json');
 const recipes=require('./recipes.json');
 const bcrypt=require('bcrypt');
+const mysql = require('mysql');
 
 app.use(express.json());
+app.use(bodyParser.json());
+
+app.use('/api/users', userRouter);
 
 const port=process.env.PORT || 4000;
 
-    
-app.get('/',(request,response)=>{
-    response.status(200);
-    response.send('FirstPage!');
+//miiddleware
+app.use((req,res,next)=>{
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET', 'POST', 'PUT', 'DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+})
+
+//db
+const connection = mysql.createConnection({
+    host: '127.0.0.1',
+    user: 'recipes',
+    password: 'recipes',
+    database: 'recipes'
 });
+
+function showRecipes(error, ingredients, fields){
+    if(error){
+        console.log('Error occured', error)
+    }
+    for (let ingredient of ingredients){
+        console.log('Loaded category ', ingredient )
+    }
+}
+
+
+//routes-db
+app.get('/api/recipes',(req, res)=>{
+    connection.query('SELECT preparation_step.description FROM preparation_step JOIN recipe ON recipe.recipe_id=preparation_step.recipe_id ORDER BY preparation_step.description',
+    (err, results)=>{
+        if(err){
+            return res.send(err)
+        }
+        else{
+            return res.json({
+                data: results
+            })
+        }
+    })
+})
+
+
+
+//routes-server-recipes
+app.get('/',(req,res)=>{
+    res.status(200);
+    res.send('FirstPage!');
+});
+
+app.get('/json/recipes',(request,response)=>{
+response.json({
+recipes
+    })
+})
+// app.post('/api/recipes', (request,response)=>{
+//     jwt.verify(request.token,(err,user)=>{
+//         if(err){
+//             response.sendStatus(403);
+//         }else{
+//             response.json({
+//                 message:'RecipeCreated',
+//                 authData
+//             });
+//         }
+//     })
+// });
+
+
+//routes-server-users
 app.get('/api/users',(request,response)=>{
     response.json(users);
 })
@@ -23,91 +97,64 @@ app.get('/api/users/:id',(request,response)=>{
     if(!user) response.status(404).send('NoUserWithTheGivenId!');
     response.send(user);
 })
-app.post('/api/users',async(request,response)=>{
-    // const schema={
-    //     first_name: Joi.string().min(1).max(10).required(),
-    //     last_name:  Joi.string().min(1).max(10).required(),
-    //     username: Joi.string().min(1).max(10).required(),
-    //     password: Joi.string().min(5).max(30).required,
-    //     repeat_password: Joi.ref('password'),
-    //     access_token: [Joi.string(), Joi.number()],
-    //     email: Joi.string().email({minDomainAtoms:2,tlds:{allow:['com','net']}})  
-    // }
-    // const result=Joi.validate(request.body,schema);
-    // if(result.error){
-    //     response.status(400).send(result.error.details[0].message);
-    //     return;
-    //     }
-    try{
-        const salt=await bcrypt.genSalt()
-        const hashedPassword=await bcrypt.hash(request.body.password,salt)
-        console.log(salt)
-        console.log(hashedPassword)
+// app.post('/api/users',async(request,response)=>{
+//     try{
+//         const salt=await bcrypt.genSalt()
+//         const hashedPassword=await bcrypt.hash(request.body.password,salt)
+//         console.log(salt)
+//         console.log(hashedPassword)
 
-        const user ={
-            id: users.length+1,
-            username:   request.body.username,
-            password: hashedPassword
-        }
-    users.push(user);
-    response.send(user);
-    }
-    catch{
-        response.status(500).send()
-    }
-    
-})
+//         const user ={
+//             id: users.length+1,
+//             email: request.body.email,
+//             first_name: request.body.first_name,
+//             last_name:  request.body.last_name,
+//             username:   request.body.username,
+//             password: hashedPassword
+//         }
+//     users.push(user);
+//     response.send(user);
+//     }
+//     catch{
+//         response.status(500).send()
+//     }
+// })
+
 app.put('/api/users',(request,response)=>{
     if(!response.body.id){
         return response.status(400).send('UserIsRequired');
     }
 })
 
-app.post('/api/users/login', async(request,response)=>{
-    const user=users.find(user=>user.name=request.body.username)
-    if(user==null){
-        return response.status(400).send('CannotFindUser')
+app.post('/api/login', (req, res)=>{
+    const {username, password} = req.body
+    const user = users.find(user=> { return user.username===username
+                                    && user.password === password});
+    if(user){
+        const accessToken = jwt.sign({ username: user.username, password: user.password}, verifyToken);
+        res.json({
+            accessToken
+        });
+    } else {
+        res.send('username or password incorrect')
     }
-    try{
-        if(await bcrypt.compare(request.body.password,user.password)){
-            response.send('Success')
-        }else{
-            response.send('NotAllowed')
-        }
-    }catch{
-        return response.status(400).send()
-    }
-    // jwt.sign({user},'secretkey',{expiresIn:'30s'},(err,token)=>{
-    //     response.json({
-    //         token
-    //     })
-    // })
-})
+});
 
 //VerifyToken
-function verifyToken(request,response,next){
-    const bearerHeader=request.headers['authorization'];
+function verifyToken(req, res, next) {
+    const bearerHeader = req.headers['authorization'];
     const token=  bearerHeader && bearerHeader.split(' ')[1];
     if(token==null)
-        return  response.sendStatus(401)
+        return  res.sendStatus(401)
 
-        
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user)=>{
+        console.log(err)
+        if(err) return res.sendStatus(403)
+        req.user = user
+        next()
+    })
 }
-app.post('/api/recipes',verifyToken, (request,response)=>{
-    jwt.verify(request.token,(err,user)=>{
-        if(err){
-            response.sendStatus(403);
-        }else{
-            response.json({
-                message:'RecipeCreated',
-                authData
-            });
-        }
-    })
-});
-app.get('/api/recipes',(request,response)=>{
-    response.json({
-        recipes
-    })
-})
+
+
+
 app.listen(port, ()=>console.log(`Listening at ${port}`));
