@@ -66,10 +66,23 @@ response.json({
     })
 })
 
-app.post('/api/recipes', verifyToken, (request,response)=>{
-    response.json({
-        message:'Created'
-    })
+app.post('/api/recipes', async(request,response)=>{
+    try{
+        const recipe = {
+            id: recipes.length+1,
+            name: name,
+            category: category,
+            difficulty: difficulty,
+            preparation_time: preparation_time,
+            ingredients: ingredients,
+            preparation_steps: preparation_steps    
+        }
+        recipes.push(recipe)
+        response.send(recipe)
+    }
+    catch {
+        response.status(500).send()
+}
 })
 
 
