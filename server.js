@@ -70,12 +70,12 @@ app.post('/api/recipes', async(request,response)=>{
     try{
         const recipe = {
             id: recipes.length+1,
-            name: name,
-            category: category,
-            difficulty: difficulty,
-            preparation_time: preparation_time,
-            ingredients: ingredients,
-            preparation_steps: preparation_steps    
+            name: request.body.name,
+            category: request.body.category,
+            difficulty: request.body.difficulty,
+            preparation_time: request.body.preparation_time,
+            ingredients: request.body.ingredients,
+            preparation_steps: request.body.preparation_steps    
         }
         recipes.push(recipe)
         response.send(recipe)
