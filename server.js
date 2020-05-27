@@ -140,7 +140,7 @@ app.post('/api/users/login', (req, res)=>{
             token
         });
     } else {
-        res.send('username or password incorrect')
+        res.status(403).send('username or password incorrect')
     }
 });
 
