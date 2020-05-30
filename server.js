@@ -132,9 +132,9 @@ app.put('/api/users',(request,response)=>{
 app.post('/api/users/login', (req, res)=>{
     const {username, hashedPassword} = req.body
     const user = users.find(user=> { return user.username===username
-                                    && user.password === hashedPassword});
+                                    && user.hashedPassword === hashedPassword});
     if(user){
-        const token = jwt.sign({ username: user.username, hashedPassword: user.password}, 'secretkey');
+        const token = jwt.sign({ username: user.username, hashedPassword: user.hashedPassword}, 'secretkey');
         res.json({
             user,
             token
