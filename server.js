@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 
 const users = require("./users.json");
 const recipes = require("./recipes.json");
+const tips = require("./tips.json");
 const { request, response } = require("express");
 
 // const mysql = require('mysql');
@@ -86,13 +87,33 @@ app.post("/api/recipes", async (request, response) => {
   }
 });
 
-// app.get("/api/users/:id/saved_recipes", (request, response) => {
+app.get("/api/tips", (request, response) => {
+  response.json({
+    tips,
+  });
+});
+
+app.post("/api/tips", async (request, response) => {
+  try {
+    const tip = {
+      id: tips.length + 1,
+      title: request.body.title,
+      content: request.body.content,
+    };
+    tips.push(tip);
+    response.send(tip);
+  } catch {
+    response.status(500).send();
+  }
+});
+
+// app.get("/api/users/:id", (request, response) => {
 //   response.json({
-//     savedRecipes,
+//     saved_recipes,
 //   });
 // });
 
-// app.post("/api/users/:id/saved_recipes", (request, response) => {
+// app.post("/api/users/:id", (request, response) => {
 //   try {
 //     const savedRecipe = {
 //       id: savedRecipes.length + 1,
@@ -103,7 +124,7 @@ app.post("/api/recipes", async (request, response) => {
 //       ingredients: request.body.ingredients,
 //       preparation_steps: request.body.preparation_steps,
 //     };
-//     savedRecipes.push(savedRecipe);
+//     user.saved_recipes.push(savedRecipe);
 //     response.send(savedRecipe);
 //   } catch {
 //     response.status(500).send();
