@@ -8,10 +8,12 @@ const bcrypt = require("bcrypt");
 const users = require("./users.json");
 const recipes = require("./recipes.json");
 const tips = require("./tips.json");
-const { request, response } = require("express");
+// const { request, response } = require("express");
 
 // const mysql = require('mysql');
+var cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
@@ -20,6 +22,7 @@ const port = process.env.PORT || 4000;
 //miiddlewares
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
+  // res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader("Access-Control-Allow-Methods", "GET", "POST", "PUT", "DELETE");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -107,30 +110,6 @@ app.post("/api/tips", async (request, response) => {
   }
 });
 
-// app.get("/api/users/:id", (request, response) => {
-//   response.json({
-//     saved_recipes,
-//   });
-// });
-
-// app.post("/api/users/:id", (request, response) => {
-//   try {
-//     const savedRecipe = {
-//       id: savedRecipes.length + 1,
-//       name: request.body.name,
-//       category: request.body.category,
-//       difficulty: request.body.difficulty,
-//       preparation_time: request.body.preparation_time,
-//       ingredients: request.body.ingredients,
-//       preparation_steps: request.body.preparation_steps,
-//     };
-//     user.saved_recipes.push(savedRecipe);
-//     response.send(savedRecipe);
-//   } catch {
-//     response.status(500).send();
-//   }
-// });
-
 //routes-users
 
 //get all users
@@ -167,11 +146,29 @@ app.post("/api/users", async (request, response) => {
   }
 });
 
-app.put("/api/users", (request, response) => {
-  if (!response.body.id) {
-    return response.status(400).send("UserIsRequired");
+app.put("/api/users/:id", (request, response) => {
+  try {
+    const user = users.find((user) => user.id === parseInt(request.params.id));
+    const body = request.body;
+    const index = users.indexOf(user);
+    if (!user) {
+      response.status(404).send("NoUserWithTheGivenId!");
+    } else {
+      const tmp = [...user.saved_recipes, body];
+      const updatedSaved = [...new Set(tmp)];
+      users[index].saved_recipes = updatedSaved;
+      response.send(user);
+    }
+  } catch {
+    response.status(500).send("nijeUspelo");
   }
 });
+
+// app.put("/api/users/:id", (request, response) => {
+//   if (!response.body.id) {
+//     return response.status(400).send("UserIsRequired");
+//   }
+// });
 
 app.post("/api/users/login", (req, res) => {
   const { username, hashedPassword } = req.body;
