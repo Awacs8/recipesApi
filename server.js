@@ -62,8 +62,7 @@ function verifyToken(req, res, next) {
 //routes-recipes
 
 app.get("/", (request, response) => {
-  response.status(200);
-  response.send("FirstPage!");
+  response.status(200).send("FirstPage!");
 });
 
 app.get("/api/recipes", (request, response) => {
@@ -84,7 +83,7 @@ app.post("/api/recipes", async (request, response) => {
       preparation_steps: request.body.preparation_steps,
     };
     recipes.push(recipe);
-    response.send(recipe);
+    response.status(201).send(recipe);
   } catch {
     response.status(500).send();
   }
@@ -104,7 +103,7 @@ app.post("/api/tips", async (request, response) => {
       content: request.body.content,
     };
     tips.push(tip);
-    response.send(tip);
+    response.status(201).send(tip);
   } catch {
     response.status(500).send();
   }
@@ -120,7 +119,7 @@ app.get("/api/users", (request, response) => {
 app.get("/api/users/:id", (request, response) => {
   const user = users.find((user) => user.id === parseInt(request.params.id));
   if (!user) response.status(404).send("NoUserWithTheGivenId!");
-  response.send(user);
+  response.status(200).send(user);
 });
 //create user
 app.post("/api/users", async (request, response) => {
@@ -153,11 +152,12 @@ app.put("/api/users/:id", (request, response) => {
     const index = users.indexOf(user);
     if (!user) {
       response.status(404).send("NoUserWithTheGivenId!");
+    } else if (user.saved_recipes.find((recipe) => recipe.id == body.id)) {
+      response.status(409).send("recipe is alredy saved");
     } else {
-      const tmp = [...user.saved_recipes, body];
-      const updatedSaved = [...new Set(tmp)];
+      const updatedSaved = [...user.saved_recipes, body];
       users[index].saved_recipes = updatedSaved;
-      response.send(user);
+      response.status(201).send(user);
     }
   } catch {
     response.status(500).send("nijeUspelo");
