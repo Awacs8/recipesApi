@@ -164,6 +164,27 @@ app.put("/api/users/:id", (request, response) => {
   }
 });
 
+app.delete("/api/users/:id", (request, response) => {
+  try {
+    const user = users.find((user) => user.id === parseInt(request.params.id));
+    const body = request.body;
+    const index = users.indexOf(user);
+    console.log(body);
+    if (!user) {
+      response.status(404).send("NoUserWithGivenId");
+    } else {
+      const newSaved = user.saved_recipes.filter(
+        (recipe) => recipe.id !== body.id
+      );
+      users[index].saved_recipes = newSaved;
+      console.log(newSaved);
+      response.status(200).send(user);
+    }
+  } catch {
+    response.status(500).send("nijeUspelo");
+  }
+});
+
 // app.put("/api/users/:id", (request, response) => {
 //   if (!response.body.id) {
 //     return response.status(400).send("UserIsRequired");
