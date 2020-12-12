@@ -4,7 +4,7 @@ const app = express();
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
-
+const { v4: uuidv4 } = require("uuid");
 const users = require("./users.json");
 const recipes = require("./recipes.json");
 const tips = require("./tips.json");
@@ -118,19 +118,17 @@ app.get("/api/users", (request, response) => {
 //get user by id
 app.get("/api/users/:id", (request, response) => {
   const user = users.find((user) => user.id === parseInt(request.params.id));
-  if (!user) response.status(404).send("NoUserWithTheGivenId!");
+  if (!user) response.status(404).send("No user with given Id!");
   response.status(200).send(user);
 });
 //create user
 app.post("/api/users", async (request, response) => {
   try {
-    const salt = await bcrypt.genSalt();
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(request.body.password, salt);
-    console.log(salt);
-    console.log(hashedPassword);
 
     const user = {
-      id: users.length + 1,
+      id: uuidv4(),
       email: request.body.email,
       first_name: request.body.first_name,
       last_name: request.body.last_name,
@@ -151,16 +149,16 @@ app.put("/api/users/:id", (request, response) => {
     const body = request.body;
     const index = users.indexOf(user);
     if (!user) {
-      response.status(404).send("NoUserWithTheGivenId!");
+      response.status(404).send("No user with given Id!");
     } else if (user.saved_recipes.find((recipe) => recipe.id == body.id)) {
-      response.status(409).send("recipe is alredy saved");
+      response.status(409).send("Recipe is alredy saved");
     } else {
       const updatedSaved = [...user.saved_recipes, body];
       users[index].saved_recipes = updatedSaved;
       response.status(201).send(user);
     }
-  } catch {
-    response.status(500).send("nijeUspelo");
+  } catch (error) {
+    response.status(500).send(error);
   }
 });
 
@@ -170,7 +168,7 @@ app.delete("/api/users/:id", (request, response) => {
     const body = request.body;
     const index = users.indexOf(user);
     if (!user) {
-      response.status(404).send("NoUserWithGivenId");
+      response.status(404).send("No user with given Id");
     } else {
       const newSaved = user.saved_recipes.filter(
         (recipe) => recipe.id !== body.recipe.id
@@ -179,8 +177,8 @@ app.delete("/api/users/:id", (request, response) => {
       // console.log(newSaved);
       response.status(200).send(user);
     }
-  } catch {
-    response.status(500).send("nijeUspelo");
+  } catch (error) {
+    response.status(500).send(error);
   }
 });
 
@@ -190,22 +188,30 @@ app.delete("/api/users/:id", (request, response) => {
 //   }
 // });
 
-app.post("/api/users/login", (req, res) => {
-  const { username, hashedPassword } = req.body;
-  const user = users.find((user) => {
-    return user.username === username && user.hashedPassword === hashedPassword;
-  });
-  if (user) {
-    const token = jwt.sign(
-      { username: user.username, hashedPassword: user.hashedPassword },
-      "secretkey"
-    );
-    res.json({
-      user,
-      token,
+app.post("/api/users/login", async (request, response) => {
+  const { username, password } = request.body;
+  try {
+    const user = users.find((user) => {
+      return user.username.toLocaleLowerCase() === username.toLocaleLowerCase();
     });
-  } else {
-    res.status(403).send("username or password incorrect");
+
+    if (!user) {
+      return response.status(404).send("No user found");
+    }
+
+    const passwordCheck = await bcrypt.compare(password, user.password);
+
+    if (passwordCheck) {
+      const token = jwt.sign({ username: user.username }, "secretkey");
+      response.json({
+        username,
+        token,
+      });
+    } else {
+      response.status(403).send("Username or password incorrect");
+    }
+  } catch (error) {
+    return response.status(500).send(error);
   }
 });
 
