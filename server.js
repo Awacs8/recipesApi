@@ -204,7 +204,7 @@ app.post("/api/users/login", async (request, response) => {
     if (passwordCheck) {
       const token = jwt.sign({ username: user.username }, "secretkey");
       response.json({
-        username,
+        user,
         token,
       });
     } else {
