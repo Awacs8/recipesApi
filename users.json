@@ -1,21 +1,20 @@
 [
   {
     "id": 1,
-    "first_name": "An",
-    "last_name": "Ka",
+    "email": "ankana@na.na",
+    "first_name": "Anka",
+    "last_name": "Nana",
     "username": "Awacs",
-    "email": "an@ka.na",
-    "password": "abc123",
+    "password": "$2b$10$dulCs/eacoJFQAlh1u63u.CnyA40r0YjcKUI12alPd6Fu.lMzLRiS",
     "saved_recipes": []
   },
-
   {
-    "id": 2,
-    "first_name": "L",
+    "id": 3,
+    "email": "avax@na.na",
+    "first_name": "An",
     "last_name": "Na",
     "username": "Avax",
-    "email": "la@na.na",
-    "password": "abc456",
+    "password": "$2b$10$VhsknV9NqiD0WpDrh0.qNukgUjT833djiW4o7PRf5X37godhUCPlW",
     "saved_recipes": []
   }
 ]

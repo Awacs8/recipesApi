@@ -1,15 +1,11 @@
 const express = require("express");
 const app = express();
-
 const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
-const { v4: uuidv4 } = require("uuid");
 const users = require("./users.json");
 const recipes = require("./recipes.json");
 const tips = require("./tips.json");
-// const { request, response } = require("express");
-
 // const mysql = require('mysql');
 var cors = require("cors");
 
@@ -31,17 +27,17 @@ app.use((req, res, next) => {
   next();
 });
 
-function verifyToken(req, res, next) {
-  const bearerHeader = req.headers["authorization"];
-  if (typeof bearerHeader !== "undefined") {
-    const bearer = bearerHeader.split(" ");
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
-    next();
-  } else {
-    res.status(403);
-  }
-}
+// function verifyToken(req, res, next) {
+//   const bearerHeader = req.headers["authorization"];
+//   if (typeof bearerHeader !== "undefined") {
+//     const bearer = bearerHeader.split(" ");
+//     const bearerToken = bearer[1];
+//     req.token = bearerToken;
+//     next();
+//   } else {
+//     res.status(403);
+//   }
+// }
 
 //routes-db
 
@@ -124,11 +120,14 @@ app.get("/api/users/:id", (request, response) => {
 //create user
 app.post("/api/users", async (request, response) => {
   try {
+    const user = users.find((user) => user.username === request.body.username);
+    if (user) {
+      response.status(409).send("Username alredy exists");
+    }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(request.body.password, salt);
-
-    const user = {
-      id: uuidv4(),
+    const newUser = {
+      id: users.length + 1,
       email: request.body.email,
       first_name: request.body.first_name,
       last_name: request.body.last_name,
@@ -136,10 +135,34 @@ app.post("/api/users", async (request, response) => {
       password: hashedPassword,
       saved_recipes: [],
     };
-    users.push(user);
-    response.send(user);
+    users.push(newUser);
+    response.send(newUser);
   } catch {
     response.status(500).send();
+  }
+});
+
+app.post("/api/users/login", async (request, response) => {
+  const { username, password } = request.body;
+  try {
+    const user = users.find((user) => {
+      return user.username.toLocaleLowerCase() === username.toLocaleLowerCase();
+    });
+    if (!user) {
+      return response.status(404).send("No user found");
+    }
+    const passwordCheck = await bcrypt.compare(password, user.password);
+    if (passwordCheck) {
+      const token = jwt.sign({ username: user.username }, "secretkey");
+      response.json({
+        user,
+        token,
+      });
+    } else {
+      response.status(403).send("Username or password incorrect");
+    }
+  } catch (error) {
+    return response.status(500).send(error);
   }
 });
 
@@ -187,32 +210,5 @@ app.delete("/api/users/:id", (request, response) => {
 //     return response.status(400).send("UserIsRequired");
 //   }
 // });
-
-app.post("/api/users/login", async (request, response) => {
-  const { username, password } = request.body;
-  try {
-    const user = users.find((user) => {
-      return user.username.toLocaleLowerCase() === username.toLocaleLowerCase();
-    });
-
-    if (!user) {
-      return response.status(404).send("No user found");
-    }
-
-    const passwordCheck = await bcrypt.compare(password, user.password);
-
-    if (passwordCheck) {
-      const token = jwt.sign({ username: user.username }, "secretkey");
-      response.json({
-        user,
-        token,
-      });
-    } else {
-      response.status(403).send("Username or password incorrect");
-    }
-  } catch (error) {
-    return response.status(500).send(error);
-  }
-});
 
 app.listen(port, () => console.log(`Listening at ${port}`));
