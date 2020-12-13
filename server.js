@@ -123,20 +123,21 @@ app.post("/api/users", async (request, response) => {
     const user = users.find((user) => user.username === request.body.username);
     if (user) {
       response.status(409).send("Username alredy exists");
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(request.body.password, salt);
+      const newUser = {
+        id: users.length + 1,
+        email: request.body.email,
+        first_name: request.body.first_name,
+        last_name: request.body.last_name,
+        username: request.body.username,
+        password: hashedPassword,
+        saved_recipes: [],
+      };
+      users.push(newUser);
+      response.send(newUser);
     }
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(request.body.password, salt);
-    const newUser = {
-      id: users.length + 1,
-      email: request.body.email,
-      first_name: request.body.first_name,
-      last_name: request.body.last_name,
-      username: request.body.username,
-      password: hashedPassword,
-      saved_recipes: [],
-    };
-    users.push(newUser);
-    response.send(newUser);
   } catch {
     response.status(500).send();
   }
