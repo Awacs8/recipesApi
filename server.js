@@ -18,17 +18,6 @@ app.use(userRoutes);
 app.use(recipesRoutes);
 app.use(tipsRoutes);
 
-// app.use((req, res, next) => {
-//   res.setHeader("Access-Control-Allow-Origin", "*");
-//   // res.setHeader("Access-Control-Allow-Credentials", true);
-//   res.setHeader("Access-Control-Allow-Methods", "GET", "POST", "PUT", "DELETE");
-//   res.setHeader(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// });
-
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.1hokd.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 mongoose
   .connect(uri, {
@@ -40,10 +29,6 @@ mongoose
   .then(() => {
     console.log("Connected to mongodb");
   });
-
-// //fake-db
-// const users = require("./users.json");
-// const recipes = require("./recipes.json");
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Listening at ${port}`));

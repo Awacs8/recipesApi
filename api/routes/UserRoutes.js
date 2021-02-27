@@ -26,8 +26,8 @@ app.post("/api/users", async (request, response) => {
     if (user) {
       response.status(409).send("Username alredy exists");
     }
-    await newUser.save();
-    response.status(200).send(user);
+    newUser.save();
+    response.status(200).send(newUser);
   } catch (err) {
     response.status(500).send(err.message);
   }

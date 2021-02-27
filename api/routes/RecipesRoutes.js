@@ -7,7 +7,6 @@ const app = express();
 app.get("/api/recipes", async (request, response) => {
   try {
     const recipes = await recipeModel.find({});
-
     response.status(200).send(recipes);
   } catch (err) {
     response.status(500).send(err);
@@ -27,8 +26,8 @@ app.get("/api/recipes/:id", async (request, response) => {
 //create recipe
 app.post("/api/recipes", async (request, response) => {
   try {
-    const newRecipe = new recipeModel(request.body);
-    await newRecipe.save();
+    const newRecipe = await new recipeModel(request.body);
+    newRecipe.save();
     response.status(200).send(newRecipe);
   } catch (err) {
     response.status(500).send(err.message);
