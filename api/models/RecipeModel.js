@@ -23,7 +23,7 @@ const RecipeSchema = new mongoose.Schema({
   ingredients: [
     {
       ingName: { type: String, trim: true, required: true },
-      quantity: { type: Number, trim: true },
+      quantity: { type: String, trim: true },
       unit_of_measure: { type: String, trim: true, required: true },
     },
   ],
