@@ -19,12 +19,11 @@ app.use(recipesRoutes);
 app.use(tipsRoutes);
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.1hokd.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+mongoose.set("strictQuery", true);
 mongoose
   .connect(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
   })
   .then(() => {
     console.log("Connected to mongodb");
